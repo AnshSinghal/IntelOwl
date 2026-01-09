@@ -21,15 +21,17 @@ class BigFileUploadSettingsTestCase(CustomTestCase):
 
     nginx: client_max_body_size 100m (100MB)
     Django settings should allow at least 100MB to match nginx.
+
+    Note: Using 10**6 notation to match the existing Django settings
+    convention in intel_owl/settings/security.py
     """
 
     # 100MB in bytes - should match nginx client_max_body_size
+    # Using 10**6 to match existing settings convention
     NGINX_MAX_BODY_SIZE = 100 * (10**6)  # 100MB
 
-    # Common large file sizes that users might upload
-    LARGE_FILE_SIZE_75MB = 75 * (10**6)  # 75MB - reported in issue #3156
-    LARGE_FILE_SIZE_80MB = 80 * (10**6)  # 80MB
-    LARGE_FILE_SIZE_90MB = 90 * (10**6)  # 90MB
+    # 75MB - reported in issue #3156
+    LARGE_FILE_SIZE_75MB = 75 * (10**6)
 
     def test_data_upload_max_memory_size_allows_100mb(self):
         """
@@ -106,23 +108,4 @@ class BigFileUploadSettingsTestCase(CustomTestCase):
             settings.FILE_UPLOAD_MAX_MEMORY_SIZE,
             "DATA_UPLOAD_MAX_MEMORY_SIZE and FILE_UPLOAD_MAX_MEMORY_SIZE should match "
             "for consistent behavior",
-        )
-
-    def test_upload_limit_has_safety_margin(self):
-        """
-        Test that upload limit has some safety margin above nginx limit.
-
-        Django's limit should be at least equal to nginx's limit,
-        ideally with some margin for multipart overhead.
-        """
-        from django.conf import settings
-
-        # Minimum acceptable: equal to nginx limit
-        minimum_acceptable = self.NGINX_MAX_BODY_SIZE
-
-        self.assertGreaterEqual(
-            settings.DATA_UPLOAD_MAX_MEMORY_SIZE,
-            minimum_acceptable,
-            f"Django upload limit should be at least {minimum_acceptable / (10**6):.0f}MB "
-            "to handle files up to nginx's client_max_body_size",
         )

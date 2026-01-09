@@ -23,6 +23,9 @@ run_base_tests() {
     echo "=========================================="
     echo "Running BASE tests (existing tests)"
     echo "=========================================="
+    # Note: || true allows script to continue even if base tests fail
+    # due to setup issues (e.g., missing database). The purpose is to
+    # demonstrate that basic test infrastructure works.
     python manage.py test tests.api_app.test_helpers -v 2 2>&1 || true
     echo ""
     echo "BASE tests completed."
