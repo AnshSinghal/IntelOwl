@@ -113,8 +113,7 @@ class CapaInfo(FileAnalyzer, RulesUtiliyMixin):
         return False
 
     def run(self):
-        try:
-            
+        try:            
             self._ensure_cache_directory()
 
             response = requests.get(
