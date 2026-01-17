@@ -32,8 +32,13 @@ class ApiVoidAnalyzer(classes.ObservableAnalyzer):
 
         complete_url = f"{self.url}/{path}"
 
-        headers = {"Content-Type": "application/json", "X-API-Key": self._api_key}
+        headers = {
+            "Content-Type": "application/json",
+            "X-API-Key": self._api_key,
+        }
+
         payload = {parameter: self.observable_name}
-        r = requests.get(complete_url, headers=headers, params=payload)
+
+        r = requests.post(complete_url, headers=headers, json=payload)
         r.raise_for_status()
         return r.json()
