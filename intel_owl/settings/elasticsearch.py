@@ -13,16 +13,31 @@ if ELASTICSEARCH_BI_ENABLED:
     ELASTICSEARCH_BI_HOST = secrets.get_secret("ELASTICSEARCH_BI_HOST").split(",")
     ELASTICSEARCH_BI_INDEX = secrets.get_secret("ELASTICSEARCH_BI_INDEX")
     if ELASTICSEARCH_BI_HOST and ELASTICSEARCH_BI_INDEX:
-        ELASTICSEARCH_BI_CLIENT = Elasticsearch(
-            ELASTICSEARCH_BI_HOST,
-            maxsize=20,
-            max_retries=10,
-            retry_on_timeout=True,
-            timeout=30,
-        )
-        if not ELASTICSEARCH_BI_CLIENT.ping():
+        elasticsearch_bi_conf = {
+            "hosts": ELASTICSEARCH_BI_HOST,
+            "maxsize": 20,
+            "max_retries": 10,
+            "retry_on_timeout": True,
+            "timeout": 30,
+        }
+        if any("elasticsearch:9200" in host for host in ELASTICSEARCH_BI_HOST):
+            elasticsearch_bi_conf["verify_certs"] = (
+                "/opt/deploy/intel_owl/certs/elastic_instance/elasticsearch.crt"
+            )
+            elasticsearch_bi_conf["ca_certs"] = (
+                "/opt/deploy/intel_owl/certs/elastic_ca/ca.crt"
+            )
+        ELASTICSEARCH_BI_CLIENT = Elasticsearch(**elasticsearch_bi_conf)
+        try:
+            if not ELASTICSEARCH_BI_CLIENT.ping():
+                print(
+                    "ELASTICSEARCH BI client configuration did not connect correctly: "
+                    f"{ELASTICSEARCH_BI_CLIENT.info()}"
+                )
+        except Exception as e:
             print(
-                f"ELASTICSEARCH BI client configuration did not connect correctly: {ELASTICSEARCH_BI_CLIENT.info()}"
+                "ELASTICSEARCH BI client configuration did not connect correctly: "
+                f"{e}"
             )
     else:
         print("Elasticsearch not correctly configured")
