@@ -1,9 +1,13 @@
 # This file is a part of IntelOwl https://github.com/intelowlproject/IntelOwl
 # See the file 'LICENSE' for copying permission.
 
+import logging
+
 from elasticsearch import Elasticsearch
 
 from intel_owl import secrets
+
+logger = logging.getLogger(__name__)
 
 # business intelligence (bi)
 ELASTICSEARCH_BI_ENABLED = (
@@ -21,26 +25,28 @@ if ELASTICSEARCH_BI_ENABLED:
             "timeout": 30,
         }
         if any("elasticsearch:9200" in host for host in ELASTICSEARCH_BI_HOST):
-            elasticsearch_bi_conf["verify_certs"] = (
-                "/opt/deploy/intel_owl/certs/elastic_instance/elasticsearch.crt"
-            )
+            elasticsearch_bi_conf["verify_certs"] = True
             elasticsearch_bi_conf["ca_certs"] = (
                 "/opt/deploy/intel_owl/certs/elastic_ca/ca.crt"
             )
         ELASTICSEARCH_BI_CLIENT = Elasticsearch(**elasticsearch_bi_conf)
         try:
             if not ELASTICSEARCH_BI_CLIENT.ping():
-                print(
-                    "ELASTICSEARCH BI client configuration did not connect correctly: "
-                    f"{ELASTICSEARCH_BI_CLIENT.info()}"
+                try:
+                    info = ELASTICSEARCH_BI_CLIENT.info()
+                except Exception as info_error:
+                    info = f"info unavailable: {info_error}"
+                logger.warning(
+                    "ELASTICSEARCH BI client configuration did not connect correctly: %s",
+                    info,
                 )
         except Exception as e:
-            print(
-                "ELASTICSEARCH BI client configuration did not connect correctly: "
-                f"{e}"
+            logger.warning(
+                "ELASTICSEARCH BI client configuration did not connect correctly: %s",
+                e,
             )
     else:
-        print("Elasticsearch not correctly configured")
+        logger.warning("Elasticsearch BI not correctly configured")
 
 
 # advanced search
@@ -61,18 +67,21 @@ if ELASTICSEARCH_DSL_ENABLED:
         if "elasticsearch:9200" in ELASTICSEARCH_DSL_HOST:
             # in case we use Elastic as container we need the generated
             # in case we use Elastic as external service it should have a valid cert
-            elastic_search_conf["verify_certs"] = (
-                "/opt/deploy/intel_owl/certs/elastic_instance/elasticsearch.crt"
-            )
+            elastic_search_conf["verify_certs"] = True
             elastic_search_conf["ca_certs"] = (
                 "/opt/deploy/intel_owl/certs/elastic_ca/ca.crt"
             )
         ELASTICSEARCH_DSL_CLIENT = Elasticsearch(**elastic_search_conf)
         if not ELASTICSEARCH_DSL_CLIENT.ping():
-            print(
-                f"ELASTICSEARCH DSL client configuration did not connect correctly: {ELASTICSEARCH_DSL_CLIENT.info()}"
+            try:
+                info = ELASTICSEARCH_DSL_CLIENT.info()
+            except Exception as info_error:
+                info = f"info unavailable: {info_error}"
+            logger.warning(
+                "ELASTICSEARCH DSL client configuration did not connect correctly: %s",
+                info,
             )
     else:
-        print(
+        logger.warning(
             "you have to configure ELASTIC_HOST with the URL of your ElasticSearch instance"
         )
