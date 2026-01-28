@@ -1,13 +1,9 @@
 # This file is a part of IntelOwl https://github.com/intelowlproject/IntelOwl
 # See the file 'LICENSE' for copying permission.
 
-import logging
-
 from elasticsearch import Elasticsearch
 
 from intel_owl import secrets
-
-logger = logging.getLogger(__name__)
 
 # business intelligence (bi)
 ELASTICSEARCH_BI_ENABLED = (
@@ -32,21 +28,13 @@ if ELASTICSEARCH_BI_ENABLED:
         ELASTICSEARCH_BI_CLIENT = Elasticsearch(**elasticsearch_bi_conf)
         try:
             if not ELASTICSEARCH_BI_CLIENT.ping():
-                try:
-                    info = ELASTICSEARCH_BI_CLIENT.info()
-                except Exception as info_error:
-                    info = f"info unavailable: {info_error}"
-                logger.warning(
-                    "ELASTICSEARCH BI client configuration did not connect correctly: %s",
-                    info,
-                )
+                print("ELASTICSEARCH BI client configuration did not connect correctly")
         except Exception as e:
-            logger.warning(
-                "ELASTICSEARCH BI client configuration did not connect correctly: %s",
-                e,
+            print(
+                f"ELASTICSEARCH BI client configuration did not connect correctly: {e}"
             )
     else:
-        logger.warning("Elasticsearch BI not correctly configured")
+        print("Elasticsearch BI not correctly configured")
 
 
 # advanced search
@@ -72,16 +60,16 @@ if ELASTICSEARCH_DSL_ENABLED:
                 "/opt/deploy/intel_owl/certs/elastic_ca/ca.crt"
             )
         ELASTICSEARCH_DSL_CLIENT = Elasticsearch(**elastic_search_conf)
-        if not ELASTICSEARCH_DSL_CLIENT.ping():
-            try:
-                info = ELASTICSEARCH_DSL_CLIENT.info()
-            except Exception as info_error:
-                info = f"info unavailable: {info_error}"
-            logger.warning(
-                "ELASTICSEARCH DSL client configuration did not connect correctly: %s",
-                info,
+        try:
+            if not ELASTICSEARCH_DSL_CLIENT.ping():
+                print(
+                    "ELASTICSEARCH DSL client configuration did not connect correctly"
+                )
+        except Exception as e:
+            print(
+                f"ELASTICSEARCH DSL client configuration did not connect correctly: {e}"
             )
     else:
-        logger.warning(
+        print(
             "you have to configure ELASTIC_HOST with the URL of your ElasticSearch instance"
         )
